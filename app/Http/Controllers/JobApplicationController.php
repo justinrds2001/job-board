@@ -6,42 +6,44 @@ use App\Http\Controllers\Controller;
 use App\Models\Job;
 use Illuminate\Http\Request;
 
-class JobController extends Controller
+class JobApplicationController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $filters = request()->only('search', 'min-salary', 'max-salary', 'experience', 'category');
-        return view('job.index', ['jobs' => Job::with('employer')->filter($filters)->get()]);
+        //
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Job $job)
     {
-        //
+        return view('job_application.create', ['job' => $job]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Job $job, Request $request)
     {
-        //
+        $job->jobApplications()->create([
+            'user_id' => $request->user()->id,
+            ...$request->validate([
+                'expected_salary' => 'required|min:1|max:1000000'
+            ])
+        ]);
+        return redirect()->route('jobs.show', $job)->with('success', 'Job application submitted');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Job $job)
+    public function show(string $id)
     {
-        $job->load(['employer.jobs' => function ($query) use ($job) {
-            $query->where('id', '!=', $job->id);
-        }]);
-        return view('job.show', ['job' => $job]);
+        //
     }
 
     /**
